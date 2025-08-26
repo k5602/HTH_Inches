@@ -8,7 +8,7 @@ import math
 class HandMeasurement:
     """
     Hand Measurement Tool
-    
+
     A computer vision application that detects hand landmarks and measures distances
     between different points on the hand in both pixels and inches (when calibrated).
     Features include multiple measurement modes, custom measurements, calibration,
@@ -44,7 +44,7 @@ class HandMeasurement:
             {"name": "Index-Middle Tip", "landmarks": [8, 12], "color": (0, 255, 0), "multi_hand": False},   # Distance between index and middle fingertips
             {"name": "Thumb-Pinky Span", "landmarks": [4, 20], "color": (255, 0, 0), "multi_hand": False},   # Maximum hand span (thumb to pinky)
             {"name": "Hand Width (Knuckles)", "landmarks": [5, 17], "color": (0, 0, 255), "multi_hand": False},  # Width across knuckles
-            
+
             # Two-hand measurement
             {"name": "Index-to-Index (Two Hands)", "landmarks": [8, 8], "color": (255, 0, 255), "multi_hand": True}  # Measure between hands
         ]
@@ -108,22 +108,22 @@ class HandMeasurement:
                     self.mp_drawing_styles.get_default_hand_landmarks_style(),
                     self.mp_drawing_styles.get_default_hand_connections_style()
                 )
-                
+
                 # For single-hand modes, analyze and show the hand dimensions
                 if not mode["multi_hand"]:
                     # Get hand size metrics (width, height, center position)
                     gesture_info = self.analyze_gesture_size(hand_landmarks)
-                    
+
                     # Draw a yellow bounding box around the hand
                     topleft = (int(gesture_info['center'][0] - gesture_info['width']/2),
                               int(gesture_info['center'][1] - gesture_info['height']/2))
                     bottomright = (int(gesture_info['center'][0] + gesture_info['width']/2),
                                   int(gesture_info['center'][1] + gesture_info['height']/2))
                     cv2.rectangle(frame, topleft, bottomright, (0, 255, 255), 1)
-                    
+
                     # Show the hand dimensions above the hand
                     hand_size_text = f"Hand size: {int(gesture_info['width'])}x{int(gesture_info['height'])} px"
-                    cv2.putText(frame, hand_size_text, 
+                    cv2.putText(frame, hand_size_text,
                                 (int(gesture_info['center'][0] - 80), int(gesture_info['center'][1] - gesture_info['height']/2 - 10)),
                                 self.font, 0.5, (0, 255, 255), 1)
 
@@ -158,7 +158,7 @@ class HandMeasurement:
 
                 # Display distance
                 self.draw_measurement_info(frame, distance, mode["name"])
-                
+
                 # Record measurement if recording is active
                 if self.recording:
                     self.record_measurement(distance)
@@ -192,7 +192,7 @@ class HandMeasurement:
 
                 # Display distance
                 self.draw_measurement_info(frame, distance, mode["name"])
-                
+
                 # Record measurement if recording is active
                 if self.recording:
                     self.record_measurement(distance)
@@ -435,7 +435,7 @@ class HandMeasurement:
             else:
                 # In normal measurement mode - detect hands and show measurements
                 hand_detected = self.process_frame(frame)
-                
+
                 # Show guidance if no hand is detected
                 if not hand_detected:
                     self.draw_no_hand_message(frame)
@@ -461,7 +461,7 @@ class HandMeasurement:
         self.cap.release()
         cv2.destroyAllWindows()
         self.hands.close()
-        
+
     def handle_key_press(self, key):
         """
         Process keyboard input from the user
@@ -471,13 +471,13 @@ class HandMeasurement:
         # Exit the application
         if key == ord('q'):
             return False
-            
+
         # Change measurement mode (with time debounce to prevent accidental double-presses)
         elif key == ord('m') and time.time() - self.last_mode_change > 0.3 and not self.calibration_mode and not self.custom_mode_creation:
             self.current_mode = (self.current_mode + 1) % len(self.measurement_modes)
             self.last_mode_change = time.time()
             print(f"Switched to measurement mode: {self.measurement_modes[self.current_mode]['name']}")
-            
+
         # Toggle calibration mode
         elif key == ord('c'):
             self.calibration_mode = not self.calibration_mode
@@ -486,7 +486,7 @@ class HandMeasurement:
                 self.calibration_points = []
             else:
                 print("Calibration mode disabled.")
-                
+
         # Toggle custom measurement creation mode
         elif key == ord('x'):
             self.custom_mode_creation = not self.custom_mode_creation
@@ -495,7 +495,7 @@ class HandMeasurement:
                 self.custom_mode_points = []
             else:
                 print("Custom measurement mode creation disabled.")
-                
+
         # Toggle measurement recording
         elif key == ord('r'):
             self.recording = not self.recording
@@ -505,11 +505,11 @@ class HandMeasurement:
                 print("Recording started. Perform measurements to record them.")
             else:
                 print(f"Recording stopped. {len(self.recorded_data)} measurements recorded.")
-                
+
         # Save recorded measurements
         elif key == ord('s') and not self.recording and len(self.recorded_data) > 0:
             self.export_data()
-            
+
         # Cycle through performance modes
         elif key == ord('p'):
             if self.performance_mode == "high_quality":
@@ -518,10 +518,10 @@ class HandMeasurement:
                 self.performance_mode = "performance"
             else:
                 self.performance_mode = "high_quality"
-                
+
             self.update_performance_settings()
             print(f"Performance mode changed to: {self.performance_mode}")
-            
+
         return True
 
     #-------------------------------------------------------------------
@@ -631,11 +631,11 @@ class HandMeasurement:
         if len(self.calibration_points) == 2:
             # Calculate pixel distance between the two selected points
             pixel_distance = self.calculate_distance(self.calibration_points[0], self.calibration_points[1])
-            
+
             # Convert to pixels per inch using the known physical distance
             self.pixels_per_inch = pixel_distance / self.calibration_known_distance
             self.is_calibrated = True
-            
+
             print(f"✓ Calibration successful: {self.pixels_per_inch:.1f} pixels per inch")
             self.calibration_mode = False  # Exit calibration mode
 
@@ -818,7 +818,7 @@ class HandMeasurement:
                     # Create the CSV file
                     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                     writer.writeheader()
-                    
+
                     # Write each measurement as a row
                     for record in self.recorded_data:
                         row_data = {
@@ -901,9 +901,9 @@ class HandMeasurement:
             # Performance mode - optimize for speed
             self.hands = self.mp_hands.Hands(
                 static_image_mode=False,
-                max_num_hands=1,                # Only detect one hand to save processing
-                min_detection_confidence=0.6,   # Lower confidence threshold
-                min_tracking_confidence=0.4     # Less strict tracking
+                max_num_hands=1,
+                min_detection_confidence=0.6,
+                min_tracking_confidence=0.4
             )
 
 #-------------------------------------------------------------------
@@ -922,7 +922,7 @@ if __name__ == "__main__":
         print("  P - Cycle performance modes")
         print("  Q - Quit")
         print("---------------------")
-        
+
         measurement_tool = HandMeasurement()
         measurement_tool.run()
     except Exception as e:
